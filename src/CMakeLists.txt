@@ -13,6 +13,8 @@ set(_SOURCES main.cpp)
 # Add source to this project's executable.
 add_executable (${TARGET_NAME} ${_SOURCES})
 
+target_link_libraries(${TARGET_NAME} gtest_main)
+#add_test(NAME example_test COMMAND example)
 if(MSVC)
   target_compile_options(${TARGET_NAME} PRIVATE /W4 /WX)
 else()

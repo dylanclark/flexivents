@@ -2,10 +2,15 @@
 //
 
 #include "flexivents.h"
-
+#include <gtest/gtest.h>
 #include <iostream>
 
 using namespace Events;
+
+TEST(FlexiventsTest, IsHookedUp)
+{
+	ASSERT_EQ(0, 0);
+}
 
 void pl(const std::string& s) {
 	std::cout << s << std::endl;
@@ -69,5 +74,7 @@ int main()
 	{
 		std::cout << e.what();
 	}
+	testing::InitGoogleTest();
+	RUN_ALL_TESTS();
 	return 0;
 }
