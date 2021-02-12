@@ -25,6 +25,7 @@ namespace MyEvents
 {
 
 	DefineEvent(VoidEvent, IVoidEventCallback, void);
+	DefineEvent(VoidEvent2, IVoidEventCallback, void);
 	DefineEvent(BoolEvent, IBooleanEventCallback, bool);
 	DefineEvent(MultiEvent, IMultiEventCallback, int, int);
 }
@@ -55,6 +56,7 @@ int main()
 	std::unique_ptr<EventsAggregator> ea{ std::make_unique<EventsAggregator>() };
 
 	ea->RegisterEvent(MyEvents::VoidEvent);
+	ea->RegisterEvent(MyEvents::VoidEvent2);
 	ea->RegisterEvent<bool>(MyEvents::BoolEvent);
 	ea->RegisterEvent<int, int>(MyEvents::MultiEvent);
 

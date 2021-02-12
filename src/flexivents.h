@@ -6,7 +6,8 @@
 #include <vector>
 #include <exception>
 #include <string>
-#include <any>
+#include <typeindex>
+#include <memory>
 
 // move event in 
 // deletions
@@ -58,8 +59,13 @@ namespace Events {
 		std::vector<TCallbackFunction> m_callbacks;
 	};
 
+	struct IEventManager
+	{
+		virtual ~IEventManager() = default;
+	};
+
 	template<typename ...TEventArgs>
-	class EventManager
+	class EventManager : public IEventManager
 	{
 	public:
 
@@ -101,35 +107,39 @@ namespace Events {
 		void RegisterEvent(const std::string& id)
 		{
 			Event<TEventArgs...> event{};
-			GetEventManager<TEventArgs...>(id).RegisterEvent(id, event);
+			GetEventManager<TEventArgs...>().RegisterEvent(id, event);
 		}
 
 		template<typename ...TEventArgs>
 		void RegisterCallback(const std::string& id, std::function<void(TEventArgs...)> callback)
 		{
-			GetEventManager<TEventArgs...>(id).RegisterCallback(id, callback);
+			GetEventManager<TEventArgs...>().RegisterCallback(id, callback);
 		}
 
 		template<typename ...TEventArgs>
 		void RaiseEvent(const std::string& id, TEventArgs... args)
 		{
-			GetEventManager<TEventArgs...>(id).RaiseEvent(id, args...);
+			GetEventManager<TEventArgs...>().RaiseEvent(id, args...);
 		}
 
 	private:
 		template<typename ...TEventArgs>
-		EventManager<TEventArgs...>& GetEventManager(const std::string& id)
+		EventManager<TEventArgs...>& GetEventManager()
 		{
-			const auto eventManagerIterator{ eventManagers.find(id) };
-			if (eventManagerIterator == eventManagers.end())
+
+			auto key{ std::type_index(typeid(EventManager<TEventArgs...>)) };
+			const auto eventManagerIterator{ m_eventManagers.find(key) };
+			if (eventManagerIterator == m_eventManagers.end())
 			{
-				EventManager<TEventArgs...> manager{};
-				eventManagers.insert({ id, manager });
+				std::unique_ptr<IEventManager> eventManager{ std::make_unique<EventManager<TEventArgs...>>() };
+				m_eventManagers.insert({ key, std::move(eventManager) });
 			}
-			return std::any_cast<EventManager<TEventArgs...>&>(eventManagers[id]);
+			
+			std::unique_ptr<IEventManager>& pEventManager{ m_eventManagers.at(key) };
+			return dynamic_cast<EventManager<TEventArgs...>&>(*pEventManager);
 		}
 
-		std::unordered_map<std::string, std::any> eventManagers;
+		std::unordered_map<std::type_index, std::unique_ptr<IEventManager>> m_eventManagers;
 	};
 
 
